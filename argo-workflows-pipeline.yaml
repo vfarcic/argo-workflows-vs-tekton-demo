@@ -7,6 +7,12 @@ metadata:
 spec:
   entrypoint: full
   serviceAccountName: workflow
+  arguments:
+    parameters:
+    - name: project
+      value: argo-workflows-vs-tekton-demo
+    - name: release
+      value: "1.0.1"
   volumes:
   - name: kaniko-secret
     secret:
@@ -14,6 +20,14 @@ spec:
       items:
         - key: .dockerconfigjson
           path: config.json
+  volumeClaimTemplates:
+  - metadata:
+      name: workdir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
   templates:
   - name: full
     dag:
@@ -26,41 +40,74 @@ spec:
         arguments:
           parameters:
           - name: app_repo
-            value: git://github.com/vfarcic/argo-workflows-demo
+            value: git://github.com/vfarcic/{{workflow.parameters.project}}
           - name: container_image
-            value: vfarcic/devops-toolkit
+            value: vfarcic/{{workflow.parameters.project}}
           - name: container_tag
-            value: "1.0.0"
-      - name: deploy-staging
-        template: echo
-        arguments:
-          parameters:
-          - name: message
-            value: Deploying to the staging cluster...
-        dependencies:
-        - build-container-image
-      - name: tests
-        template: echo
-        arguments:
-          parameters:
-          - name: message
-            value: Running integration tests (before, during, and after the deployment is finished)...
-        dependencies:
-        - build-container-image
-      - name: deploy-production
-        template: echo
-        arguments:
-          parameters:
-          - name: message
-            value: Deploying to the production cluster...
-        dependencies:
-        - tests
-  - name: echo
-    inputs:
-      parameters:
-      - name: message
-    container:
-      image: alpine
-      command: [echo]
-      args:
-      - "{{inputs.parameters.message}}"
+            value: "{{workflow.parameters.release}}"
+          # - name: app_repo
+          #   value: git://github.com/vfarcic/argo-workflows-demo
+          # - name: container_image
+          #   value: vfarcic/devops-toolkit
+          # - name: container_tag
+          #   value: "1.0.0"
+      # - name: deploy-staging
+      #   templateRef:
+      #     name: deploy
+      #     template: kustomize
+      #     clusterScope: true
+      #   arguments:
+      #     parameters:
+      #     - name: container_image
+      #       value: git://github.com/vfarcic/argo-workflows-demo
+      #     - name: container_image
+      #       value: vfarcic/devops-toolkit
+      #     - name: container_tag
+      #       value: "1.0.0"
+
+    # params:
+    # - name: container_image
+    #   value: vfarcic/$(params.project)
+    # - name: container_tag
+    #   value: "$(params.release)"
+    # - name: manifests_path
+    #   value: $(params.project)/kustomize/overlays/staging
+    # workspaces:
+    # - name: source
+    #   workspace: pipeline-ws
+    # runAfter:
+    #  - build-container-image
+    #  - git-clone
+  #     - name: deploy-staging
+  #       template: echo
+  #       arguments:
+  #         parameters:
+  #         - name: message
+  #           value: Deploying to the staging cluster...
+  #       dependencies:
+  #       - build-container-image
+  #     - name: tests
+  #       template: echo
+  #       arguments:
+  #         parameters:
+  #         - name: message
+  #           value: Running integration tests (before, during, and after the deployment is finished)...
+  #       dependencies:
+  #       - build-container-image
+  #     - name: deploy-production
+  #       template: echo
+  #       arguments:
+  #         parameters:
+  #         - name: message
+  #           value: Deploying to the production cluster...
+  #       dependencies:
+  #       - tests
+  # - name: echo
+  #   inputs:
+  #     parameters:
+  #     - name: message
+  #   container:
+  #     image: alpine
+  #     command: [echo]
+  #     args:
+  #     - "{{inputs.parameters.message}}"

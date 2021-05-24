@@ -8,7 +8,7 @@ metadata:
 spec:
   params:
   - name: project
-    default: tekton-demo
+    default: argo-workflows-vs-tekton-demo
   - name: release
     default: "1.0.1"
   workspaces:

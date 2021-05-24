@@ -52,15 +52,18 @@ spec:
       - name: container_image
       - name: container_tag
       - name: manifests_path
-    script:
+    container:
       image: nekottyo/kustomize-kubeval
-      source: |
-        cd TODO:
-        kustomize edit set image {{inputs.parameters.container_image}}={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
-        kustomize build | kubectl apply --filename -
+      command: ["/bin/sh", "-c"]
+      args:
+      - pwd;
+# cd TODO:
+# kustomize edit set image {{inputs.parameters.container_image}}={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
+# kustomize build | kubectl apply --filename -
 
 ---
 
+# TODO: Remove
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
@@ -71,8 +74,16 @@ spec:
     inputs:
       parameters:
       - name: url
-    script:
-      image: bitnami/git
-      source: |
-        cd TODO:
-        git clone {{inputs.parameters.url}}
+      artifacts:
+      - name: source
+        path: /source
+        git:
+          repo: "{{inputs.parameters.url}}"
+    container:
+      image: alpine
+      command: ["ls"]
+      args:
+      - -l
+      volumeMounts:
+      - name: workdir
+        mountPath: /source

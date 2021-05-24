@@ -16,5 +16,5 @@ spec:
            name: tekton-dashboard
            port:
              number: 9097
-    host: tekton.164.90.252.22.nip.io
+    host: tekton.164.90.254.16.nip.io
 
