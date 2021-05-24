@@ -1,0 +1,78 @@
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: container-image
+spec:
+  templates:
+  - name: build-kaniko-git
+    inputs:
+      parameters:
+      - name: app_repo
+      - name: container_image
+      - name: container_tag
+    container:
+      image: gcr.io/kaniko-project/executor:debug
+      args:
+      - --context={{inputs.parameters.app_repo}}
+      - --destination={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
+      volumeMounts:
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker/
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: random
+spec:
+  templates:
+  - name: echo
+    inputs:
+      parameters:
+      - name: message
+    container:
+      image: alpine:latest
+      command: [echo]
+      args: ["{{inputs.parameters.message}}"]
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: deploy
+spec:
+  templates:
+  - name: kustomize
+    inputs:
+      parameters:
+      - name: container_image
+      - name: container_tag
+      - name: manifests_path
+    script:
+      image: nekottyo/kustomize-kubeval
+      source: |
+        cd TODO:
+        kustomize edit set image {{inputs.parameters.container_image}}={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
+        kustomize build | kubectl apply --filename -
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: git
+spec:
+  templates:
+  - name: clone
+    inputs:
+      parameters:
+      - name: url
+    script:
+      image: bitnami/git
+      source: |
+        cd TODO:
+        git clone {{inputs.parameters.url}}

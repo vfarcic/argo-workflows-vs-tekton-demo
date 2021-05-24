@@ -1,0 +1,74 @@
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: toolkit
+  namespace: tekton-builds
+spec:
+  params:
+  - name: project
+    default: tekton-demo
+  - name: release
+    default: "1.0.1"
+  workspaces:
+    - name: pipeline-ws
+  tasks:
+  - name: git-clone
+    taskRef:
+      name: task-git-clone
+    workspaces:
+    - name: source
+      workspace: pipeline-ws
+    params:
+    - name: url
+      value: git://github.com/vfarcic/$(params.project)
+  - name: build-container-image
+    taskRef:
+      name: build-kaniko-git
+    params:
+    - name: app_repo
+      value: git://github.com/vfarcic/$(params.project)
+    - name: container_image
+      value: vfarcic/$(params.project)
+    - name: container_tag
+      value: "$(params.release)"
+  - name: deploy-staging
+    taskRef:
+      name: task-kustomize
+    params:
+    - name: container_image
+      value: vfarcic/$(params.project)
+    - name: container_tag
+      value: "$(params.release)"
+    - name: manifests_path
+      value: $(params.project)/kustomize/overlays/staging
+    workspaces:
+    - name: source
+      workspace: pipeline-ws
+    runAfter:
+     - build-container-image
+     - git-clone
+  - name: tests
+    taskRef:
+      name: task-echo
+    params:
+    - name: message
+      value: Running integration tests (before, during, and after the deployment is finished)...
+    runAfter:
+     - deploy-staging
+  - name: deploy-production
+    taskRef:
+      name: task-kustomize
+    params:
+    - name: container_image
+      value: vfarcic/$(params.project)
+    - name: container_tag
+      value: "$(params.release)"
+    - name: manifests_path
+      value: $(params.project)/kustomize/overlays/production
+    workspaces:
+    - name: source
+      workspace: pipeline-ws
+    runAfter:
+     - tests

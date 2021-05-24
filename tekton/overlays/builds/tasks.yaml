@@ -1,0 +1,90 @@
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-kaniko-git
+  namespace: tekton-builds
+spec:
+  params:
+  - name: app_repo
+  - name: container_image
+  - name: container_tag
+  volumes:
+  - name: kaniko-secret
+    secret:
+      secretName: regcred
+      items:
+      - key: .dockerconfigjson
+        path: config.json
+  steps:
+  - name: build
+    image: gcr.io/kaniko-project/executor:debug
+    args:
+    - --context=$(params.app_repo)
+    - --destination=$(params.container_image):$(params.container_tag)
+    volumeMounts:
+    - name: kaniko-secret
+      mountPath: /kaniko/.docker/
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: task-echo
+  namespace: tekton-builds
+spec:
+  params:
+  - name: message
+    type: string
+  steps:
+  - name: sleep
+    image: alpine:latest
+    command: [echo]
+    args: ["$(params.message)"]
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: task-kustomize
+  namespace: tekton-builds
+spec:
+  params:
+  - name: container_image
+    type: string
+  - name: container_tag
+    type: string
+  - name: manifests_path
+    type: string
+  workspaces:
+  - name: source
+  steps:
+  - name: version
+    image: nekottyo/kustomize-kubeval
+    script: |
+      cd $(workspaces.source.path)/$(params.manifests_path)
+      kustomize edit set image $(params.container_image)=$(params.container_image):$(params.container_tag)
+      kustomize build | kubectl apply --filename -
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: task-git-clone
+  namespace: tekton-builds
+spec:
+  workspaces:
+  - name: source
+  params:
+  - name: url
+    type: string
+  steps:
+  - name: clone
+    image: bitnami/git
+    script: |
+      cd $(workspaces.source.path)
+      git clone $(params.url)
