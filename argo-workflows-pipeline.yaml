@@ -32,39 +32,37 @@ spec:
   - name: full
     dag:
       tasks:
-      - name: build-container-image
+      # - name: build-container-image
+      #   templateRef:
+      #     name: container-image
+      #     template: build-kaniko-git
+      #     clusterScope: true
+      #   arguments:
+      #     parameters:
+      #     - name: app_repo
+      #       value: git://github.com/vfarcic/{{workflow.parameters.project}}
+      #     - name: container_image
+      #       value: vfarcic/{{workflow.parameters.project}}
+      #     - name: container_tag
+      #       value: "{{workflow.parameters.release}}"
+      - name: deploy-staging
         templateRef:
-          name: container-image
-          template: build-kaniko-git
+          name: deploy
+          template: kustomize
           clusterScope: true
         arguments:
           parameters:
-          - name: app_repo
-            value: git://github.com/vfarcic/{{workflow.parameters.project}}
           - name: container_image
             value: vfarcic/{{workflow.parameters.project}}
           - name: container_tag
             value: "{{workflow.parameters.release}}"
-          # - name: app_repo
-          #   value: git://github.com/vfarcic/argo-workflows-demo
-          # - name: container_image
-          #   value: vfarcic/devops-toolkit
-          # - name: container_tag
-          #   value: "1.0.0"
-      # - name: deploy-staging
-      #   templateRef:
-      #     name: deploy
-      #     template: kustomize
-      #     clusterScope: true
-      #   arguments:
-      #     parameters:
-      #     - name: container_image
-      #       value: git://github.com/vfarcic/argo-workflows-demo
-      #     - name: container_image
-      #       value: vfarcic/devops-toolkit
-      #     - name: container_tag
-      #       value: "1.0.0"
-
+          - name: manifests_path
+            value: "{{workflow.parameters.project}}/kustomize/overlays/staging"
+          - name: app_repo
+            value: git://github.com/vfarcic/{{workflow.parameters.project}}
+        # dependencies:
+        # - build-container-image
+        
     # params:
     # - name: container_image
     #   value: vfarcic/$(params.project)

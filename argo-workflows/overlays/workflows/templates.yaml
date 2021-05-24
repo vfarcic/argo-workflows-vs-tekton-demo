@@ -52,11 +52,12 @@ spec:
       - name: container_image
       - name: container_tag
       - name: manifests_path
-    container:
+      - name: app_repo
+    script:
       image: nekottyo/kustomize-kubeval
-      command: ["/bin/sh", "-c"]
+      command: ["sh", "-c"]
       args:
-      - pwd;
+      - git clone {{inputs.parameters.app_repo}}
 # cd TODO:
 # kustomize edit set image {{inputs.parameters.container_image}}={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
 # kustomize build | kubectl apply --filename -
