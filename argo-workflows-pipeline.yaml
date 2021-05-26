@@ -10,9 +10,11 @@ spec:
   arguments:
     parameters:
     - name: project
-      value: argo-workflows-vs-devops-toolkit
+      value: argo-workflows-vs-tekton-demo
     - name: release
       value: "1.0.1"
+    - name: app_name
+      value: devops-toolkit
   volumes:
   - name: kaniko-secret
     secret:
@@ -20,14 +22,6 @@ spec:
       items:
         - key: .dockerconfigjson
           path: config.json
-  volumeClaimTemplates:
-  - metadata:
-      name: workdir
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
   templates:
   - name: full
     dag:
@@ -42,7 +36,7 @@ spec:
           - name: app_repo
             value: git://github.com/vfarcic/{{workflow.parameters.project}}
           - name: container_image
-            value: vfarcic/{{workflow.parameters.project}}
+            value: vfarcic/{{workflow.parameters.app_name}}
           - name: container_tag
             value: "{{workflow.parameters.release}}"
       - name: deploy-staging
@@ -53,15 +47,15 @@ spec:
         arguments:
           parameters:
           - name: container_image
-            value: vfarcic/{{workflow.parameters.project}}
+            value: vfarcic/{{workflow.parameters.app_name}}
           - name: container_tag
             value: "{{workflow.parameters.release}}"
           - name: manifests_path
             value: /kustomize/overlays/staging
           - name: app_repo
             value: git://github.com/vfarcic/{{workflow.parameters.project}}
-        # dependencies:
-        # - build-container-image
+        dependencies:
+        - build-container-image
         
     # params:
     # - name: container_image

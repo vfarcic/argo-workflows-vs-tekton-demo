@@ -8,9 +8,11 @@ metadata:
 spec:
   params:
   - name: project
-    default: argo-workflows-vs-devops-toolkit
+    default: argo-workflows-vs-tekton-demo
   - name: release
     default: "1.0.1"
+  - name: app_name
+    default: devops-toolkit
   workspaces:
     - name: pipeline-ws
   tasks:
@@ -30,7 +32,7 @@ spec:
     - name: app_repo
       value: git://github.com/vfarcic/$(params.project)
     - name: container_image
-      value: vfarcic/$(params.project)
+      value: vfarcic/$(params.app_name)
     - name: container_tag
       value: "$(params.release)"
   - name: deploy-staging
@@ -38,7 +40,7 @@ spec:
       name: task-kustomize
     params:
     - name: container_image
-      value: vfarcic/$(params.project)
+      value: vfarcic/$(params.app_name)
     - name: container_tag
       value: "$(params.release)"
     - name: manifests_path
