@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tekton-demo
+  name: devops-toolkit
   labels:
-    app: tekton-demo
+    app: devops-toolkit
 spec:
   selector:
     matchLabels:
-      app: tekton-demo
+      app: devops-toolkit
   template:
     metadata:
       labels:
-        app: tekton-demo
+        app: devops-toolkit
     spec:
       containers:
-      - name: tekton-demo
-        image: vfarcic/tekton-demo:latest
+      - name: devops-toolkit
+        image: vfarcic/devops-toolkit:latest
         ports:
         - containerPort: 80
         livenessProbe:

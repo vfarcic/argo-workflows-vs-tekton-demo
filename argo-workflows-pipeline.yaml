@@ -10,7 +10,7 @@ spec:
   arguments:
     parameters:
     - name: project
-      value: argo-workflows-vs-tekton-demo
+      value: argo-workflows-vs-devops-toolkit
     - name: release
       value: "1.0.1"
   volumes:
@@ -32,19 +32,19 @@ spec:
   - name: full
     dag:
       tasks:
-      # - name: build-container-image
-      #   templateRef:
-      #     name: container-image
-      #     template: build-kaniko-git
-      #     clusterScope: true
-      #   arguments:
-      #     parameters:
-      #     - name: app_repo
-      #       value: git://github.com/vfarcic/{{workflow.parameters.project}}
-      #     - name: container_image
-      #       value: vfarcic/{{workflow.parameters.project}}
-      #     - name: container_tag
-      #       value: "{{workflow.parameters.release}}"
+      - name: build-container-image
+        templateRef:
+          name: container-image
+          template: build-kaniko-git
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: app_repo
+            value: git://github.com/vfarcic/{{workflow.parameters.project}}
+          - name: container_image
+            value: vfarcic/{{workflow.parameters.project}}
+          - name: container_tag
+            value: "{{workflow.parameters.release}}"
       - name: deploy-staging
         templateRef:
           name: deploy
@@ -57,7 +57,7 @@ spec:
           - name: container_tag
             value: "{{workflow.parameters.release}}"
           - name: manifests_path
-            value: "{{workflow.parameters.project}}/kustomize/overlays/staging"
+            value: /kustomize/overlays/staging
           - name: app_repo
             value: git://github.com/vfarcic/{{workflow.parameters.project}}
         # dependencies:

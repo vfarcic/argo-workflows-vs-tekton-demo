@@ -55,12 +55,13 @@ spec:
       - name: app_repo
     script:
       image: nekottyo/kustomize-kubeval
-      command: ["sh", "-c"]
-      args:
-      - git clone {{inputs.parameters.app_repo}}
-# cd TODO:
-# kustomize edit set image {{inputs.parameters.container_image}}={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
-# kustomize build | kubectl apply --filename -
+      command:
+      - sh
+      source: |
+        git clone {{inputs.parameters.app_repo}} src
+        cd src/{{inputs.parameters.manifests_path}}
+        kustomize edit set image {{inputs.parameters.container_image}}={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
+        kustomize build | kubectl apply --filename -
 
 ---
 
