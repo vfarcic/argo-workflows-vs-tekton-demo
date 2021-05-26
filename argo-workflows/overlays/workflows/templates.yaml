@@ -1,25 +1,5 @@
 ---
 
-# apiVersion: argoproj.io/v1alpha1
-# kind: ClusterWorkflowTemplate
-# metadata:
-#   name: container-image
-# spec:
-#   templates:
-#   - name: build-kaniko-git
-#     inputs:
-#       parameters:
-#       - name: app_repo
-#       - name: container_image
-#       - name: container_tag
-#     container:
-#       image: gcr.io/kaniko-project/executor:debug
-#       args:
-#       - --context={{inputs.parameters.app_repo}}
-#       - --destination={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
-#       volumeMounts:
-#         - name: kaniko-secret
-#           mountPath: /kaniko/.docker/
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
@@ -32,13 +12,11 @@ spec:
       - name: app_repo
       - name: container_image
       - name: container_tag
-    script:
-      image: alpine
-      command:
-      - sh
-      source: |
-        ls -l /kaniko/.docker/
-        cat /kaniko/.docker/config.json
+    container:
+      image: gcr.io/kaniko-project/executor:debug
+      args:
+      - --context={{inputs.parameters.app_repo}}
+      - --destination={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker/
@@ -63,9 +41,26 @@ spec:
       command:
       - sh
       source: |
-        echo {{inputs.parameters.app_repo}}
         git clone {{inputs.parameters.app_repo}} src
-        ls -l src/
         cd src/{{inputs.parameters.manifests_path}}
         kustomize edit set image {{inputs.parameters.container_image}}={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
         kustomize build | kubectl apply --filename -
+
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: random
+spec:
+  templates:
+  - name: echo
+    inputs:
+      parameters:
+      - name: message
+    container:
+      image: alpine
+      command:
+      - echo
+      args:
+      - "{{inputs.parameters.message}}"

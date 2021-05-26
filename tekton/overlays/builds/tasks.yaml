@@ -41,8 +41,9 @@ spec:
   steps:
   - name: sleep
     image: alpine:latest
-    command: [echo]
-    args: ["$(params.message)"]
+    script: |
+        echo "$(params.message)"
+        sleep 5
 
 ---
 

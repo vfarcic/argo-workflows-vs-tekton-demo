@@ -56,50 +56,43 @@ spec:
             value: git://github.com/vfarcic/{{workflow.parameters.project}}
         dependencies:
         - build-container-image
-        
-    # params:
-    # - name: container_image
-    #   value: vfarcic/$(params.project)
-    # - name: container_tag
-    #   value: "$(params.release)"
-    # - name: manifests_path
-    #   value: $(params.project)/kustomize/overlays/staging
-    # workspaces:
-    # - name: source
-    #   workspace: pipeline-ws
-    # runAfter:
-    #  - build-container-image
-    #  - git-clone
-  #     - name: deploy-staging
-  #       template: echo
-  #       arguments:
-  #         parameters:
-  #         - name: message
-  #           value: Deploying to the staging cluster...
-  #       dependencies:
-  #       - build-container-image
-  #     - name: tests
-  #       template: echo
-  #       arguments:
-  #         parameters:
-  #         - name: message
-  #           value: Running integration tests (before, during, and after the deployment is finished)...
-  #       dependencies:
-  #       - build-container-image
-  #     - name: deploy-production
-  #       template: echo
-  #       arguments:
-  #         parameters:
-  #         - name: message
-  #           value: Deploying to the production cluster...
-  #       dependencies:
-  #       - tests
-  # - name: echo
-  #   inputs:
-  #     parameters:
-  #     - name: message
-  #   container:
-  #     image: alpine
-  #     command: [echo]
-  #     args:
-  #     - "{{inputs.parameters.message}}"
+      - name: integration-tests
+        templateRef:
+          name: random
+          template: echo
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: message
+            value: Running integration tests
+        dependencies:
+        - deploy-staging
+      - name: functional-tests
+        templateRef:
+          name: random
+          template: echo
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: message
+            value: Running functional tests...
+        dependencies:
+        - deploy-staging
+      - name: deploy-production
+        templateRef:
+          name: deploy
+          template: kustomize
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: container_image
+            value: vfarcic/{{workflow.parameters.app_name}}
+          - name: container_tag
+            value: "{{workflow.parameters.release}}"
+          - name: manifests_path
+            value: /kustomize/overlays/production
+          - name: app_repo
+            value: git://github.com/vfarcic/{{workflow.parameters.project}}
+        dependencies:
+        - integration-tests
+        - functional-tests

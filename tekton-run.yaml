@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: toolkit-run-
+  namespace: tekton-builds
+spec:
+  pipelineRef:
+    name: toolkit
+  workspaces:
+  - name: pipeline-ws
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 100Mi
+        accessModes:
+          - ReadWriteOnce
