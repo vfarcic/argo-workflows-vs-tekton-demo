@@ -7,12 +7,12 @@ metadata:
   namespace: tekton-builds
 spec:
   params:
-  - name: project
-    default: argo-workflows-vs-tekton-demo
   - name: release
     default: "1.0.1"
-  - name: app_name
-    default: devops-toolkit
+  - name: container_image
+    default: vfarcic/devops-toolkit
+  - name: repo
+    default: git://github.com/vfarcic/argo-workflows-vs-tekton-demo
   workspaces:
     - name: pipeline-ws
   tasks:
@@ -24,15 +24,15 @@ spec:
       workspace: pipeline-ws
     params:
     - name: url
-      value: git://github.com/vfarcic/$(params.project)
+      value: "$(params.repo)"
   - name: build-container-image
     taskRef:
       name: build-kaniko-git
     params:
     - name: app_repo
-      value: git://github.com/vfarcic/$(params.project)
+      value: "$(params.repo)"
     - name: container_image
-      value: vfarcic/$(params.app_name)
+      value: "$(params.container_image)"
     - name: container_tag
       value: "$(params.release)"
   - name: deploy-staging
@@ -40,11 +40,11 @@ spec:
       name: task-kustomize
     params:
     - name: container_image
-      value: vfarcic/$(params.app_name)
+      value: "$(params.container_image)"
     - name: container_tag
       value: "$(params.release)"
     - name: manifests_path
-      value: $(params.project)/kustomize/overlays/staging
+      value: /kustomize/overlays/staging
     workspaces:
     - name: source
       workspace: pipeline-ws
@@ -64,11 +64,11 @@ spec:
       name: task-kustomize
     params:
     - name: container_image
-      value: vfarcic/$(params.project)
+      value: "$(params.container_image)"
     - name: container_tag
       value: "$(params.release)"
     - name: manifests_path
-      value: $(params.project)/kustomize/overlays/production
+      value: /kustomize/overlays/production
     workspaces:
     - name: source
       workspace: pipeline-ws

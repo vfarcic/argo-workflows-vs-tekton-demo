@@ -9,12 +9,12 @@ spec:
   serviceAccountName: workflow
   arguments:
     parameters:
-    - name: project
-      value: argo-workflows-vs-tekton-demo
     - name: release
       value: "1.0.1"
-    - name: app_name
-      value: devops-toolkit
+    - name: container_image
+      value: vfarcic/devops-toolkit
+    - name: repo
+      value: git://github.com/vfarcic/argo-workflows-vs-tekton-demo
   volumes:
   - name: kaniko-secret
     secret:
@@ -34,9 +34,9 @@ spec:
         arguments:
           parameters:
           - name: app_repo
-            value: git://github.com/vfarcic/{{workflow.parameters.project}}
+            value: "{{workflow.parameters.repo}}"
           - name: container_image
-            value: vfarcic/{{workflow.parameters.app_name}}
+            value: "{{workflow.parameters.container_image}}"
           - name: container_tag
             value: "{{workflow.parameters.release}}"
       - name: deploy-staging
@@ -47,13 +47,13 @@ spec:
         arguments:
           parameters:
           - name: container_image
-            value: vfarcic/{{workflow.parameters.app_name}}
+            value: "{{workflow.parameters.container_image}}"
           - name: container_tag
             value: "{{workflow.parameters.release}}"
           - name: manifests_path
             value: /kustomize/overlays/staging
           - name: app_repo
-            value: git://github.com/vfarcic/{{workflow.parameters.project}}
+            value: "{{workflow.parameters.repo}}"
         dependencies:
         - build-container-image
       - name: integration-tests
@@ -86,13 +86,13 @@ spec:
         arguments:
           parameters:
           - name: container_image
-            value: vfarcic/{{workflow.parameters.app_name}}
+            value: "{{workflow.parameters.container_image}}"
           - name: container_tag
             value: "{{workflow.parameters.release}}"
           - name: manifests_path
             value: /kustomize/overlays/production
           - name: app_repo
-            value: git://github.com/vfarcic/{{workflow.parameters.project}}
+            value: "{{workflow.parameters.repo}}"
         dependencies:
         - integration-tests
         - functional-tests

@@ -66,7 +66,7 @@ spec:
   - name: version
     image: nekottyo/kustomize-kubeval
     script: |
-      cd $(workspaces.source.path)/$(params.manifests_path)
+      cd $(workspaces.source.path)/src/$(params.manifests_path)
       kustomize edit set image $(params.container_image)=$(params.container_image):$(params.container_tag)
       kustomize build | kubectl apply --filename -
 
@@ -88,4 +88,4 @@ spec:
     image: bitnami/git
     script: |
       cd $(workspaces.source.path)
-      git clone $(params.url)
+      git clone $(params.url) src
