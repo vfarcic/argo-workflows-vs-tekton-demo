@@ -42,9 +42,6 @@ spec:
       - sh
       source: |
         git clone {{inputs.parameters.app_repo}} src
-        echo "111"
-        ls -l src/
-        echo "222"
         cd src/{{inputs.parameters.manifests_path}}
         kustomize edit set image {{inputs.parameters.container_image}}={{inputs.parameters.container_image}}:{{inputs.parameters.container_tag}}
         kustomize build | kubectl apply --filename -
