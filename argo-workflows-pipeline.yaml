@@ -51,7 +51,7 @@ spec:
           - name: container_tag
             value: "{{workflow.parameters.release}}"
           - name: manifests_path
-            value: /kustomize/overlays/staging
+            value: kustomize/overlays/staging
           - name: app_repo
             value: "{{workflow.parameters.repo}}"
         dependencies:
@@ -90,7 +90,7 @@ spec:
           - name: container_tag
             value: "{{workflow.parameters.release}}"
           - name: manifests_path
-            value: /kustomize/overlays/production
+            value: kustomize/overlays/production
           - name: app_repo
             value: "{{workflow.parameters.repo}}"
         dependencies:

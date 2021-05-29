@@ -44,7 +44,7 @@ spec:
     - name: container_tag
       value: "$(params.release)"
     - name: manifests_path
-      value: /kustomize/overlays/staging
+      value: kustomize/overlays/staging
     workspaces:
     - name: source
       workspace: pipeline-ws
@@ -68,7 +68,7 @@ spec:
     - name: container_tag
       value: "$(params.release)"
     - name: manifests_path
-      value: /kustomize/overlays/production
+      value: kustomize/overlays/production
     workspaces:
     - name: source
       workspace: pipeline-ws
